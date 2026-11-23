@@ -1,29 +1,40 @@
-// Make the Judge Smile
-// One line, at most 200 characters, about a small good thing that happened today.
-// The program writes that single line to $MAKEFUN_OUTPUT_DIR/entry.txt.
+// Make the Judge Smile — one line about a small good thing that happened today.
+// This program writes the line to the output directory the grader mounts.
 
-const LINE =
+import { writeFileSync } from "node:fs";
+
+const SMILE_LINE =
   "My neighbour left a mango on my doorstep with a note that just said 'too many, enjoy.'";
 
-function main(): void {
-  const outDir = process.env.MAKEFUN_OUTPUT_DIR;
-  if (!outDir) {
-    throw new Error("MAKEFUN_OUTPUT_DIR is not set");
+const MAX_CHARS = 200;
+
+function checkLine(text: string): void {
+  if (text.length === 0 || text.length > MAX_CHARS) {
+    throw new Error(`entry must be 1-${MAX_CHARS} characters, got ${text.length}`);
   }
-  // Self-check: exactly one line, 1-200 characters, not only whitespace,
-  // and no leading or trailing whitespace (a padded line wastes the limit).
-  if (LINE.length < 1 || LINE.length > 200) {
-    throw new Error(`line is ${LINE.length} characters, must be 1-200`);
+  if (text.includes("\n")) {
+    throw new Error("entry must be a single line");
   }
-  if (LINE.includes("\n") || LINE.trim().length === 0) {
-    throw new Error("line must be a single non-blank line");
+  if (text.trim() === "") {
+    throw new Error("entry must not be blank");
   }
-  if (LINE !== LINE.trim()) {
-    throw new Error("line must not start or end with whitespace");
+  if (text !== text.trim()) {
+    throw new Error("entry must not have leading or trailing spaces");
   }
-  const path = `${outDir}/entry.txt`;
-  require("node:fs").writeFileSync(path, LINE, "utf8");
-  console.log(`wrote ${LINE.length} characters to ${path}`);
+  if (text.includes("  ")) {
+    throw new Error("entry must not contain double spaces");
+  }
 }
 
-main();
+function run(): void {
+  const dir = process.env.MAKEFUN_OUTPUT_DIR;
+  if (!dir) {
+    throw new Error("MAKEFUN_OUTPUT_DIR is not set");
+  }
+  checkLine(SMILE_LINE);
+  const target = `${dir}/entry.txt`;
+  writeFileSync(target, SMILE_LINE, "utf8");
+  console.log(`wrote ${SMILE_LINE.length} characters to ${target}`);
+}
+
+run();
